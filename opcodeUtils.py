@@ -1,4 +1,4 @@
-from dissambler import disassembler
+from dissamblerAbstract import disassemblerAbstract
 import re
 __disassemblers = ["zydis","capstone","IDA","distorm","Relyze"]
 
@@ -24,7 +24,6 @@ def extractopcodeFromline(line):
     s = line.split("       ")
     if (matchObj):
         s = matchObj.group(1)
-        print(s)
         return s
     else:
         return False
@@ -37,7 +36,7 @@ def get(filename):
             type=d
             break
     a=""
-    with open(filename,encoding="utf8", errors='ignore') as df:
+    with open(filename, encoding="utf8", errors='ignore') as df:
         a = df.read()
 
     return a,type
@@ -46,7 +45,7 @@ def opcodeSeq(assemblyCode):
     '''
     extract opcodes from assembly codes
     :param dissambler: type of disassembler
-    :return:
+    :return: (list): list of opcodes in sequence
     '''
     asscodelist = assemblyCode.split('\n')
     #print(asscodelist)
@@ -57,5 +56,5 @@ def opcodeSeq(assemblyCode):
             opseq.append(s)
     return opseq
 
-a,d=get("/home/nislab2/Desktop/DissamblerEffect/vxheaven_Relyze/3da90b51c040c16f662d2785b1931598.asm")
-print(opcodeSeq(a))
+#a,d=get("/home/nislab2/Desktop/DissamblerEffect/vxheaven_Relyze/3da90b51c040c16f662d2785b1931598.asm")
+#print(opcodeSeq(a))

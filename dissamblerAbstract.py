@@ -1,6 +1,6 @@
 
 
-class disassembler():
+class disassemblerAbstract():
 
     def diassemble(self,filename, bits):
         pass

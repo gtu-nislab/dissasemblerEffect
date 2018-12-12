@@ -1,7 +1,7 @@
 # test1.py
 from capstone import *
-from dissambler import disassembler
-class CapstoneDisasembler(disassembler):
+from dissamblerAbstract import disassemblerAbstract
+class CapstoneDisasembler(disassemblerAbstract):
 
     def diassemble(self,filename, bits='32bit'):
         """
@@ -15,9 +15,8 @@ class CapstoneDisasembler(disassembler):
             :rtype: iterator
         """
         with open(filename, "rb") as malbyte:
-            data = malbyte.read();
+            data = malbyte.read()
             # define arguments
-            offset = 0x1000
             # define mode 16, 32 or 64 bits
             if bits == '16bit':
                 mode = CS_MODE_16
@@ -28,7 +27,9 @@ class CapstoneDisasembler(disassembler):
 
             # Decode assembly instructions
             cpstn = Cs(CS_ARCH_X86, mode)
-            return cpstn.disasm(data,offset)
+            cpstn.skipdata=True
+            assemblyiter = cpstn.disasm(data, 0x1000)
+            return assemblyiter
 
     def getDisassembledCode(self,filename, delimeter='\n', bits='32bit'):
         """
@@ -50,6 +51,8 @@ class CapstoneDisasembler(disassembler):
             # To avoid TypeError: a bytes-like object is required, not 'str'
             (address, mnemonic, op_str) = i.address, i.mnemonic, i.op_str
             assembly_code += ("0x%s:\t%s\t%s"% (address, mnemonic, op_str))+delimeter
+
+        print("filename:" + filename + "\ncode:\n" + assembly_code)
         return assembly_code
 
     def getAssemblyCode(self,filename, delimeter='\n', bits='32bit'):
@@ -77,4 +80,6 @@ class CapstoneDisasembler(disassembler):
         return assembly_code_list
 
 
-
+# fln = "/home/nislab2/Desktop/DissamblerEffect/benign/0b5511674394666e9d221f8681b2c2e6.exe"
+# capstone = CapstoneDisasembler()
+# print(capstone.getDisassembledCode(fln,bits="32bit"))

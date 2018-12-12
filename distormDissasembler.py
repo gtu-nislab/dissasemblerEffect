@@ -13,8 +13,8 @@
 
 import sys
 import distorm3  # distorm disassembler library
-from dissambler import disassembler
-class DistormDisassembler(disassembler):
+from dissamblerAbstract import disassemblerAbstract
+class DistormDisassemblerAbstract(disassemblerAbstract):
 
 
     def diassemble(self,filename, bits='32bit'):
