@@ -33,6 +33,7 @@ def asmbuilding(dir,disName,disassembler,isWriting=True):
             writeFile(cname,assembly)
         print("klasor:"+dirname+" dosyadi:"+filename+" disassembler:"+disName)
 
+
 def opcodeExtraction(dir,delimeter=","):
     fls = fu.getFilePaths(dir,[".asm"])
     for fln in fls:
