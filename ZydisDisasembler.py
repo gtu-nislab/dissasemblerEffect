@@ -2,7 +2,7 @@ import subprocess
 from dissamblerAbstract import disassemblerAbstract
 
 #lib/ZydisDisasm -64 /home/nislab2/Desktop/DissamblerEffect/metamorphic/00fe0c08024f7db771d6711787d890a3.exe
-class ZydisDisassemblerAbstract(disassemblerAbstract):
+class ZydisDisassembler(disassemblerAbstract):
 
     def diassemble(self,filename, bits='32bit'):
         """

@@ -52,7 +52,7 @@ class CapstoneDisasembler(disassemblerAbstract):
             (address, mnemonic, op_str) = i.address, i.mnemonic, i.op_str
             assembly_code += ("0x%s:\t%s\t%s"% (address, mnemonic, op_str))+delimeter
 
-        print("filename:" + filename + "\ncode:\n" + assembly_code)
+        #print("filename:" + filename + "\ncode:\n" + assembly_code)
         return assembly_code
 
     def getAssemblyCode(self,filename, delimeter='\n', bits='32bit'):

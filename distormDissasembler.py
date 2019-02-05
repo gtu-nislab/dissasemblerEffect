@@ -1,20 +1,7 @@
-#!/usr/bin/env python
-"""
-# Use distorm3 disaasembler and disaasemble file.
-# Return assembly code, instruction list, OpCode list
-#
-# Author: Necmettin Çarkacı
-#
-# E-mail: necmettin [ . ] carkaci [ @ ] gmail [ . ] com
-#
-# Usage :diassembler.py file
-#   dataset : file or directory
-"""
-
 import sys
 import distorm3  # distorm disassembler library
 from dissamblerAbstract import disassemblerAbstract
-class DistormDisassemblerAbstract(disassemblerAbstract):
+class DistormDisassembler(disassemblerAbstract):
 
 
     def diassemble(self,filename, bits='32bit'):

@@ -39,6 +39,6 @@ class UdisDissambler(disassemblerAbstract):
         return self.diassemble(filename,bits).split("\n")
 
 
-fln = "/home/nislab2/Desktop/DissamblerEffect/benign/0b5511674394666e9d221f8681b2c2e6.exe"
-unpy = UdisDissambler()
-print(unpy.diassemble(fln,bits="32bit"))
+# fln = "/home/nislab2/Desktop/DissamblerEffect/benign/0b5511674394666e9d221f8681b2c2e6.exe"
+# unpy = UdisDissambler()
+# print(unpy.diassemble(fln,bits="32bit"))
