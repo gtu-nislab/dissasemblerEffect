@@ -1,4 +1,6 @@
-import subprocess
+#from pymsasid import *
+#from pymsasid.pymsasid import Pymsasid
+
 from dissamblerAbstract import disassemblerAbstract
 
 class PymsasidDissambler(disassemblerAbstract):
@@ -9,10 +11,11 @@ class PymsasidDissambler(disassemblerAbstract):
         :param bits:
         :return:
         """
+        prog = Pymsasid(hook=Pymsasid.PEFileHook, source=filename)
+        inst = prog.disassemble(prog.pc)
+
         # Read file content as binary
-        mode = bits.replace("bit", "")
-        diasm = subprocess.check_output(['udcli', "-" + mode, filename])
-        return diasm.decode("utf-8")
+        return inst
     def getDisassembledCode(self,filename, delimeter='\n', bits='32bit'):
         """
             Disassemble file and concatenete offset, size, hexcode and instruction into string result.
@@ -40,5 +43,3 @@ class PymsasidDissambler(disassemblerAbstract):
 
 
 fln = "/home/nislab2/Desktop/DissamblerEffect/benign/0b5511674394666e9d221f8681b2c2e6.exe"
-Pymsasid = PymsasidDissambler()
-print(Pymsasid.diassemble(fln,bits="32bit"))

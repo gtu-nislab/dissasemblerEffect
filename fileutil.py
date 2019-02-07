@@ -247,3 +247,15 @@ def changeFileExtension(directory, newExt, oldExt='.*'):
         else:
             destinationFilename = basefilename + newExt
             os.rename(sourceFilename, destinationFilename)
+
+def fileNameSettings(fln,extension, disasmN=""):
+    dirname = os.path.dirname(fln)
+    filename = os.path.basename(fln)
+    (filename, ext) = os.path.splitext(filename)
+    if not disasmN:                                       #eger dirname varsa o dosya adında yeni bir acılım yapılır yoksa da directory name eklenmez araya
+        cname = dirname+os.sep+filename+ extension
+    else:
+        cname = dirname +"_"+ disasmN+"/" + filename + extension
+        if not os.path.exists(dirname +"_"+ disasmN+"/"):
+            os.makedirs(dirname +"_"+ disasmN+"/")
+    return dirname,filename,cname
