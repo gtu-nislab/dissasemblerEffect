@@ -1,6 +1,6 @@
 from dissamblerAbstract import disassemblerAbstract
 import re
-__disassemblers = ["zydis","capstone","IDA","distorm","Relyze"]
+__disassemblers = ["zydis","capstone","IDA","distorm","udis","radare"]
 
 def getmnmonics():
     f ="mnemonics.txt"
@@ -23,7 +23,6 @@ def extractopcodeFromline(line):
     regstr = createRegexSentence()
     line =line.upper().replace("\t"," ")
     matchObj = re.search(regstr, line, re.M | re.I)
-    s = line.split("       ")
     if (matchObj):
         s = matchObj.group(1)
         return s
@@ -49,13 +48,19 @@ def opcodeSeq(assemblyCode):
     :param dissambler: type of disassembler
     :return: (list): list of opcodes in sequence
     '''
+    opseq = re.findall(createRegexSentence(),assemblyCode)
+    """
     asscodelist = assemblyCode.split('\n')
     #print(asscodelist)
-    opseq = [extractopcodeFromline(ass) for ass in asscodelist if extractopcodeFromline(ass)]
-    # for ass in asscodelist:
-    #     s = extractopcodeFromline(ass)
-    #     if(s):
-    #         opseq.append(s)
+    #opseq = [extractopcodeFromline(ass) for ass in asscodelist if extractopcodeFromline(ass)]
+    r = re.compile(createRegexSentence())
+    opseq=list(filter(r.match,asscodelist))
+    
+    for ass in asscodelist:
+        s = extractopcodeFromline(ass)
+        if(s):
+            opseq.append(s)
+    """
     return opseq
 
 #a,d=get("/home/nislab2/Desktop/DissamblerEffect/vxheaven_Relyze/3da90b51c040c16f662d2785b1931598.asm")

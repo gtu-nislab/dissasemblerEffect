@@ -255,7 +255,7 @@ def fileNameSettings(fln,extension, disasmN=""):
     if not disasmN:                                       #eger dirname varsa o dosya adında yeni bir acılım yapılır yoksa da directory name eklenmez araya
         cname = dirname+os.sep+filename+ extension
     else:
-        cname = dirname +"_"+ disasmN+"/" + filename + extension
-        if not os.path.exists(dirname +"_"+ disasmN+"/"):
-            os.makedirs(dirname +"_"+ disasmN+"/")
+        cname = dirname +"/"+ disasmN+"/" + filename + extension
+        if not os.path.exists(dirname +"/"+ disasmN+"/"):
+            os.makedirs(dirname +"/"+ disasmN+"/")
     return dirname,filename,cname
