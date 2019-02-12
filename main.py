@@ -5,7 +5,7 @@ import ZydisDisasembler as zydis
 import udis86Dissambler as udis
 import radare2Dissambler as radare
 
-import fileutil as fu
+from lib import fileutil as fu
 import os
 import opcodeUtils
 
@@ -14,8 +14,8 @@ def writeFile(filename,data):
         f.write(data)
 
 disasm = [
-    #"capstone","distorm","zydis","udis",
-          "radare"]
+    #"capstone","distorm","zydis","radare",
+          "udis"]
 
 def asmbuilding(dir,disName,disassembler,isWriting=True):
     """
@@ -37,7 +37,7 @@ def asmbuilding(dir,disName,disassembler,isWriting=True):
 def opcodeExtraction(dir,delimeter=","):
     fls = fu.getFilePaths(dir,[".asm"])
     for fln in fls:
-        dirname,filename,cname = fu.fileNameSettings(fln,".opcodeseq")
+        dirname,filename,cname = fu.fileNameSettings(fln,".opcode")
         a,d = opcodeUtils.get(fln)
         opcodeseq = opcodeUtils.opcodeSeq(a)
         print (cname)
@@ -48,7 +48,7 @@ def opcodeExtraction(dir,delimeter=","):
 def _main():
 
     dir= "/home/nislab2/Desktop/DissamblerEffect/"
-    """
+
     for d in disasm:
         write = True
         if(d is "capstone"):
@@ -62,8 +62,8 @@ def _main():
             write = False
         elif(d is "udis"):
             disassembler = udis.UdisDissambler()
-        asmbuilding(dir,d,disassembler,write)
-    """
+        #asmbuilding(dir,d,disassembler,write)
+
     opcodeExtraction(dir)
 
 _main()

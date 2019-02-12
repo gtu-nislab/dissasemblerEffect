@@ -1,4 +1,8 @@
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+from lib import fileutil as fu
 
 
 #3-5 ml algoritmasi implement edilir. sonuclari cikarilir. sonuclar grafiklendirilir, sonuclar ayni tablo ustunde karsilastirilir,
@@ -9,7 +13,11 @@ def ml_timer(ml_func):
     r =ml_func()
     end = time.time()
     return end - start, r
-
+def hid_mark_modeling(sequences):
+    from hmmlearn import hmm
+    model = hmm.GaussianHMM(n_components=5, n_iter=10)
+    model.fit(sequences)
+    return model #model.score(seq) ile score hesaplanir, belirlenen threshold ile score degeri ile tespit edilir
 def rand_forest(X,y,Xtst):
     from sklearn.ensemble import RandomForestClassifier
     print(X.shape)
@@ -85,10 +93,7 @@ def roc_curve(y_true,p_probas,fig):
 
 #graphics - Colored and Styled Bar Chart for opcode counts, basarimlarin karsilastirmasi-Specify Binning Function histogram, Group By in Python for each disasm, (roc_curve),
 #sequential icin nasil bir gosterim?
-import numpy as np
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
+
 figureCount=0
 color = ['black', 'red', 'green', 'blue', 'cyan', "yellow"]
 
@@ -177,18 +182,107 @@ def chart_for_success(disAsms,success,chartfig):
     else:
         raise Exception("it should be dictionary or integer: IT CAN NOT BE SHOWN ON CHART, ERROR WHILE OPCODE FREQUENCY SHOWN")
 
-from sklearn.datasets import make_classification
-X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
-print(X.shape)
-print(len(set(y)))
-Xtest = np.random.rand(30,4)
-#timer and rand_forest testing
-def ml_func():
-    return rand_forest(X, y, Xtest)
-t,y_pre = ml_timer(ml_func)
-print("time:"+str(t))
-y_tst =np.random.randint(0,2,30)
-#accuracy testing
-print("y_tst:"+str(y_tst)+"y_pre:"+str(y_pre))
-acc = cal_acc(y_tst,y_pre)
-print("acc for random_forest:"+str(acc))
+def csv2numpy(filename):
+    from numpy import genfromtxt
+    my_data = genfromtxt(filename, delimiter=',',dtype=None,encoding=None)
+    feature=my_data[0]
+    data = my_data[1:]
+    class_index = np.where(feature == 'class_id')[0][0]
+    hash_index = np.where(feature == 'hash')[0][0]
+    y =  data[: , class_index]
+    hashes = data[: , hash_index]
+    x = np.delete(data,[class_index,hash_index],axis=1)
+    x[x =='']=0
+    return x.astype(int),y,hashes,feature #return x,y,hashes,features
+
+def clean(bigclasname):
+    ccc = bigclasname.split("/")
+    return ccc[-1]
+
+def crossvalid(x,y,h,feature,cv=2):
+    """
+    prepare data for cross validation
+    :param x: data
+    :param y: labels
+    :param h: sample id's - hashes
+    :param feature:
+    :param cv: cross validation
+    :return: xtr, xts, ytr, yts, htr, hts
+    """
+
+    shape  = x.shape
+    s = shape[0] # sample count
+    f = len(feature)-2 # feature count
+    sr = int(s / cv) # sample count in one set
+
+    #define matrices
+    xts = np.zeros(shape=(cv, sr, f))
+    yts = np.chararray(shape=(cv, sr),itemsize=64)
+    hts = np.chararray(shape=(cv, sr),itemsize=32)
+
+    xtr = np.zeros(shape=(cv, s-sr, f))
+    ytr = np.chararray(shape=(cv, s-sr),itemsize=64)
+    htr = np.chararray(shape=(cv, s-sr),itemsize=32)
+    for i in range(1,cv+1):
+        xts[i-1] = x[(i-1)*sr:i*sr]
+        yts[i-1] = np.vectorize(clean)(y[(i-1)*sr:i*sr])
+        hts[i-1] = h[(i-1)*sr:i*sr]
+        if i-1 == 0:
+            xtr[i-1] = x[i*sr:]
+            ytr[i-1] = np.vectorize(clean)(y[i*sr:])
+            htr[i-1] = h[i*sr:]
+        elif i == cv:
+            xtr[i-1] = x[0:(i-1)*sr]
+            ytr[i-1] = np.vectorize(clean)(y[0:(i-1)*sr])
+            htr[i-1] = h[0:(i-1)*sr]
+
+        else:
+            xtr[i-1] = np.concatenate((x[0:(i-1)*sr] , x[i*sr:]))
+            ytr[i-1] = np.vectorize(clean)(np.concatenate((y[0:(i-1)*sr] , y[i*sr:])))
+            htr[i-1] = np.concatenate((h[0:(i-1)*sr] , h[i*sr:]))
+    return xtr, xts, ytr, yts, htr, hts
+
+def make(dirname,type="c", cv=10):
+    '''
+    train set test set and their class values are prepared according to cross-validation and tag type.
+    :param type: flag for classes of data. In (d)etection mode, there are 2 classes, malware and benign. In classicifation mode, all different tags are class
+    :param cv: cross validation number
+    :return: according to cross validation, 4 matrix; xtrain (cv,sr,f), xtest(cv,ss,f), ytrain(cv,sr), ytest(cv,ss) - cv: cross-valid, sr:count of sample in train set, f:feature number,
+    ss:count of sample in test set
+    '''
+    csvfiles = fu.getFilePaths(dirname,extensionList=[".csv"])
+
+    if type is "c":
+        for cfile in csvfiles:
+            data= csv2numpy(cfile)
+            shp = data.shape
+            sr = shp[0]
+            f = shp[1]
+            xtr = np.zeros(shape=(cv, sr, f))
+
+        print("prepare dataset for classification")
+    elif type is "d":
+        print("prepare dataset for detection")
+    else:
+        raise Exception("MAKE DATASET ERROR!!! NO PERMISSION FOR MAKE FOR ANOTHER TYPE")
+
+if __name__ is "__mainx__":
+    from sklearn.datasets import make_classification
+    X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
+    print(X.shape)
+    print(len(set(y)))
+    Xtest = np.random.rand(30,4)
+    #timer and rand_forest testing
+    def ml_func():
+        return rand_forest(X, y, Xtest)
+    t,y_pre = ml_timer(ml_func)
+    print("time:"+str(t))
+    y_tst =np.random.randint(0,2,30)
+    #accuracy testing
+    print("y_tst:"+str(y_tst)+"y_pre:"+str(y_pre))
+    acc = cal_acc(y_tst,y_pre)
+    print("acc for random_forest:"+str(acc))
+
+x, y, hashes, feature =csv2numpy("/home/nislab2/Desktop/DissamblerEffect/metamorphic_zydis/csv/opcode_histogram.csv")
+#data = np.arange(1120).reshape(data.shape)
+print(str(crossvalid(x,y,hashes,feature,cv=5)))
