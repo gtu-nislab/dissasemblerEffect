@@ -1,6 +1,6 @@
 import r2pipe
 from dissamblerAbstract import disassemblerAbstract
-import fileutil as fu
+from lib import fileutil as fu
 import os
 
 

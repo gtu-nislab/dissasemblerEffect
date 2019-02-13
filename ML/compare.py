@@ -242,7 +242,21 @@ def crossvalid(x,y,h,feature,cv=2):
             htr[i-1] = np.concatenate((h[0:(i-1)*sr] , h[i*sr:]))
     return xtr, xts, ytr, yts, htr, hts
 
-def make(dirname,type="c", cv=10):
+
+def report(results, file):
+    resline=""
+    csvfiles = results[-1]
+    i=0
+    with open(file,"w") as rf:
+        for result in results[:-1]:#sonuncu disassembler'larin listesi
+            rf.write("\nfor "+csvfiles[i]+": \n")
+            i+=1
+            for rkey in result.keys():
+                resline = rkey + ":  "+str(result[rkey]+ "\n")
+                rf.write(resline)
+
+
+def make(dirname,apply,resultfile, cv=10):
     '''
     train set test set and their class values are prepared according to cross-validation and tag type.
     :param type: flag for classes of data. In (d)etection mode, there are 2 classes, malware and benign. In classicifation mode, all different tags are class
@@ -250,39 +264,51 @@ def make(dirname,type="c", cv=10):
     :return: according to cross validation, 4 matrix; xtrain (cv,sr,f), xtest(cv,ss,f), ytrain(cv,sr), ytest(cv,ss) - cv: cross-valid, sr:count of sample in train set, f:feature number,
     ss:count of sample in test set
     '''
-    csvfiles = fu.getFilePaths(dirname,extensionList=[".csv"])
+    from joblib import Parallel, delayed
+    import multiprocessing
+    csvfiles = fu.getFilePaths(dirname,extensionList=[".csv"]) # for each disassembly result there should be another csv file
+    num_cores = multiprocessing.cpu_count()
+    results = Parallel(n_jobs=num_cores)(delayed(apply)(csv,cv) for csv in csvfiles)
+    #results = apply(csvfiles[0],cv)
+    results.append(csvfiles)
+    print(results)
+    report(results, resultfile)
 
-    if type is "c":
-        for cfile in csvfiles:
-            data= csv2numpy(cfile)
-            shp = data.shape
-            sr = shp[0]
-            f = shp[1]
-            xtr = np.zeros(shape=(cv, sr, f))
+def apply(csvf,cv):
+    x, y, hashes, feature = csv2numpy(csvf)
+    xtr, xts, ytr, yts, htr, hts = crossvalid(x, y, hashes, feature,cv)  # xtrain, xtest, ytrain, ytest, hash(id) train, hash(id) test
+    ts = []
+    y_pres=[]
+    accs=[]
+    for eachcross in range(0,cv):
+        Xtest = xts[eachcross]
+        Xtrain = xtr[eachcross]
+        Ytest = yts[eachcross]
+        Ytrain = ytr[eachcross]
+        def rf_func():
+            return rand_forest(Xtrain,Ytrain, Xtest)
+        t, y_pre = ml_timer(rf_func)
+        ts.append(t)
+        y_pres.append(y_pre)
 
-        print("prepare dataset for classification")
-    elif type is "d":
-        print("prepare dataset for detection")
-    else:
-        raise Exception("MAKE DATASET ERROR!!! NO PERMISSION FOR MAKE FOR ANOTHER TYPE")
+        print("time:" + str(t))
 
-if __name__ is "__mainx__":
-    from sklearn.datasets import make_classification
-    X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
-    print(X.shape)
-    print(len(set(y)))
-    Xtest = np.random.rand(30,4)
-    #timer and rand_forest testing
-    def ml_func():
-        return rand_forest(X, y, Xtest)
-    t,y_pre = ml_timer(ml_func)
-    print("time:"+str(t))
-    y_tst =np.random.randint(0,2,30)
-    #accuracy testing
-    print("y_tst:"+str(y_tst)+"y_pre:"+str(y_pre))
-    acc = cal_acc(y_tst,y_pre)
-    print("acc for random_forest:"+str(acc))
+        # accuracy testing
+        print("y_tst:" + str(Ytest) + "y_pre:" + str(y_pre))
+        acc = cal_acc(Ytest, y_pre)
+        accs.append(acc)
+        print("acc for random_forest:" + str(acc))
+    return {"ml_alg":["randomForest"],
+            "evaluation":["accuracy"],
+            "csv_file":csvf,
+            "cross_valid":cv,
+            "predicted_y":y_pres,
+            "actual_y":Ytest,
+            "accuracies":accs,
+            "time":ts
+            }
 
-x, y, hashes, feature =csv2numpy("/home/nislab2/Desktop/DissamblerEffect/metamorphic_zydis/csv/opcode_histogram.csv")
-#data = np.arange(1120).reshape(data.shape)
-print(str(crossvalid(x,y,hashes,feature,cv=5)))
+
+if __name__ == "__main__":
+    dir = "/home/nislab2/Desktop/DissamblerEffect/metamorphic_zydis/csv"
+    make(dir,apply,dir+"/results.txt")
