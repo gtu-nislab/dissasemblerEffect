@@ -42,7 +42,6 @@ def opcodeExtraction(dir,delimeter=","):
             continue
         a,d = opcodeUtils.get(fln)
         opcodeseq = opcodeUtils.opcodeSeq(a)
-        print (cname)
         opss=delimeter.join(opcodeseq)
         writeFile(cname,opss)
 
